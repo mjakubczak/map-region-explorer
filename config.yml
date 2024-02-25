@@ -1,0 +1,69 @@
+default:
+  rhino_log_level: !expr Sys.getenv("RHINO_LOG_LEVEL", "INFO")
+  rhino_log_file: !expr Sys.getenv("RHINO_LOG_FILE", NA)
+
+  app_name: "Polish cancer app"
+  version: "0.1.0"
+  data_dir: !expr Sys.getenv("DATA_DIR", "app/data")
+
+  count_data:
+    file_details:
+      file_name: "cancer_data.csv"
+      col_defs:
+        year: 
+          type: "double"
+          label: "Year"
+        voivodeship: 
+          type: "factor"
+          label: "Voivodeship"
+        sex: 
+          type: "factor"
+          label: "Sex"
+        icd10: 
+          type: "factor"
+          label: "ICD-10"
+        age: 
+          type: "factor"
+          label: "Age"
+        count: 
+          type: "integer"
+          label: "Count"
+    count_col: "count"
+    location_id_col: "voivodeship"
+    dictionaries:
+      - explained_col: "icd10"
+        file_details:
+          file_name: "icd10.csv"
+          col_defs:
+            id: 
+              type: "factor"
+              label: "ICD-10"
+            label: 
+              type: "character"
+              label: "Disease"
+        id_col: "id"
+        label_col: "label"
+        show_id: true
+    
+  location_data:
+    file_details:
+      file_name: "voivodeships.csv"
+      col_defs:
+        id: 
+          type: "factor"
+          label: "Voivodeship ISO ID"
+        label: 
+          type: "factor"
+          label: "Voivodeship"
+        x: 
+          type: "double"
+          label: "X"
+        "y": 
+          type: "double"
+          label: "Y"
+    id_col: "id"
+    label_col: "label"
+    x_var: "x"
+    y_var: "y"
+    
+  map_title: "Cancer in Poland"
