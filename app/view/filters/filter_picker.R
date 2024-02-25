@@ -17,6 +17,7 @@ ui <- function(id, label, choices, actions_box = TRUE, live_search = TRUE, size 
     choices = choices,
     selected = choices,
     options = shinyWidgets$pickerOptions(
+      container = "body",
       actionsBox = actions_box,
       liveSearch = live_search,
       size = size,

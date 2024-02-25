@@ -5,6 +5,8 @@ export function register_custom_click_handler(el, x, data) {
     Shiny.setInputValue(data.input_id, value);
   };
   
+   update_shiny(null); // reset on update
+  
   el.on('plotly_click', function(d) {
     //TODO; figure out how to capture all selected regions
     if (d.points.length > 0){
