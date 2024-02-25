@@ -39,11 +39,11 @@ server <- function(id, Input_data, Selection_title_text, selection = "none", fil
       })
       
       output$table <- DT$renderDataTable({
-        df <- Input_data()
-        shiny$req(is.data.frame(df))
+        d <- Input_data()
+        shiny$req(d)
         
         DT$datatable(
-          data = preprocess_df(df),
+          data = preprocess_data(d),
           selection = selection,
           filter = filter,
           ...
@@ -53,8 +53,18 @@ server <- function(id, Input_data, Selection_title_text, selection = "none", fil
   )
 }
 
-preprocess_df <- function(df){
+preprocess_data <- function(d){
+  df <- d$df
   labels <- data_utils$get_column_labels(df)
+  
+  for (key in names(d$dictionaries)){
+    df[[key]] <- data_utils$map_dictionary(
+      ids = df[[key]],
+      dict = d$dictionaries[[key]],
+      keep_factors = TRUE
+    )
+  }
+  
   names(df) <- labels
   
   df

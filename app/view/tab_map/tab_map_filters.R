@@ -3,7 +3,7 @@ box::use(
 )
 
 box::use(
-  data_utils = app/logic/data_utils[get_column_label]
+  data_utils = app/logic/data_utils[get_column_label, map_dictionary]
 )
 
 box::use(
@@ -55,7 +55,8 @@ server <- function(id, Input_data){
                 column = filter_cols[[key]],
                 key = key,
                 Input_data = Submodule_input,
-                ns = session$ns
+                ns = session$ns,
+                dictionaries = d$dictionaries
               )
               
               filter_chain[[i]] <<- res$server
@@ -92,14 +93,19 @@ get_filter_columns <- function(d){
   df[, ! colnames(df) %in% skipped_cols]
 }
 
-generate_filter_module <- function(id, column, key, Input_data, ns){
+generate_filter_module <- function(id, column, key, Input_data, ns, dictionaries){
   label <- data_utils$get_column_label(
     column = column,
     key = key
   )
   
   if (is.logical(column) || is.character(column) || is.factor(column)){
-    choices <- unique(column)
+    dict <- dictionaries[[key]]
+    
+    choices <- make_choices(
+      column = column,
+      dict = dict
+    )
     ui <- picker$ui(
       id = ns(id),
       label = label,
@@ -131,3 +137,18 @@ generate_filter_module <- function(id, column, key, Input_data, ns){
     server = server
   )
 }
+
+make_choices <- function(column, dict = NULL){
+  choices <- unique(column)
+  
+  if (is.null(dict)){
+    choices
+  } else {
+    names(choices) <- data_utils$map_dictionary(
+      ids = choices,
+      dict = dict
+    )
+    choices
+  }
+}
+

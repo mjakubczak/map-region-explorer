@@ -75,10 +75,13 @@ server <- function(id, Count_data, Location_data) {
         count_data <- Filtered_count_data()
         location_data <- Location_data()
         
-        data_utils$filter_locations(
-          count_data = count_data,
-          location_data = location_data,
-          selected_locations = selected_locations
+        list(
+          df = data_utils$filter_locations(
+            count_data = count_data,
+            location_data = location_data,
+            selected_locations = selected_locations
+          ),
+          dictionaries = count_data$dictionaries
         )
       })
       

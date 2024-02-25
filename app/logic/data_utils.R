@@ -83,7 +83,7 @@ read_file <- function(file_details, data_dir, sort_factor_levels = TRUE){
 mixsort_factor <- function(x){
   factor(
     x = as.character(x),
-    levels = gtools$mixedsort(levels(x))
+    levels = gtools$mixedsort(as.character(unique(x)))
   )
 }
 
@@ -152,6 +152,7 @@ parse_counts <- function(count_data_def, data_dir){
     FUN = parse_dictionary,
     data_dir = data_dir
   )
+  names(dictionaries) <- purrr$map_chr(dictionaries, ~ .x$explained_col)
   
   list(
     df = count_df,
@@ -185,6 +186,7 @@ parse_dictionary <- function(dict_data_def, data_dir){
   
   list(
     df = dict_df,
+    explained_col = dict_data_def[["explained_col"]],
     id_col = dict_data_def[["id_col"]],
     label_col = dict_data_def[["label_col"]],
     show_id = dict_data_def[["show_id"]]
@@ -295,4 +297,34 @@ merge_counts_and_locations <- function(count_data, location_data){
   
   count_data$df |>
     dplyr$left_join(location_data$df, by = merge_def)
+}
+
+#' @export
+map_dictionary <- function(ids, dict, keep_factors = FALSE){
+  idx <- match(
+    x = ids, 
+    table = dict$df[[dict$id_col]]
+  )
+  
+  if (anyNA(idx)){
+    warning("some IDs don't have label for column ", dict$explained_col)
+    return(ids)
+  }
+  
+  is_factor <- is.factor(ids)
+  
+  labels_df <- dict$df[idx, ]
+  dict_labels <- labels_df[[dict$label_col]]
+  res <- if (isTRUE(dict$show_id)){
+    dict_ids <- labels_df[[dict$id_col]]
+    paste(dict_ids, dict_labels, sep = " - ")
+  } else {
+    dict_labels
+  }
+  
+  if (keep_factors && is_factor){
+    mixsort_factor(res)
+  } else {
+    res
+  }
 }
