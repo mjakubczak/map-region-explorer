@@ -1,15 +1,12 @@
 box::use(
   shiny = shiny[NS, moduleServer, reactive],
-  shinyWidgets = shinyWidgets[pickerInput, pickerOptions],
-  gtools = gtools[mixedsort]
+  shinyWidgets = shinyWidgets[pickerInput, pickerOptions]
 )
 
 #' @export
 ui <- function(id, label, choices, actions_box = TRUE, live_search = TRUE, size = 10, 
                selected_text_format = "count > 3", multiple = TRUE) {
   ns <- shiny$NS(id)
-  
-  choices <- gtools$mixedsort(choices)
   
   shinyWidgets$pickerInput(
     inputId = ns("picker"),

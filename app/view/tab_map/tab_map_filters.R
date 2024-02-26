@@ -1,9 +1,10 @@
 box::use(
-  shiny = shiny[NS, moduleServer, uiOutput, renderUI, observeEvent]
+  shiny = shiny[NS, moduleServer, uiOutput, renderUI, observeEvent],
+  gtools = gtools[mixedsort]
 )
 
 box::use(
-  data_utils = app/logic/data_utils[get_column_label, map_dictionary]
+  data_utils = app/logic/data_utils[get_column_label]
 )
 
 box::use(
@@ -55,8 +56,7 @@ server <- function(id, Input_data){
                 column = filter_cols[[key]],
                 key = key,
                 Input_data = Submodule_input,
-                ns = session$ns,
-                dictionaries = d$dictionaries
+                ns = session$ns
               )
               
               filter_chain[[i]] <<- res$server
@@ -88,25 +88,19 @@ server <- function(id, Input_data){
 
 get_filter_columns <- function(d){
   df <- d$df
-  dictionaries <- d$dictionaries
   skipped_cols <- c(d$count_col, d$location_id_col)
   
   df[, ! colnames(df) %in% skipped_cols]
 }
 
-generate_filter_module <- function(id, column, key, Input_data, ns, dictionaries){
+generate_filter_module <- function(id, column, key, Input_data, ns){
   label <- data_utils$get_column_label(
     column = column,
     key = key
   )
   
   if (is.logical(column) || is.character(column) || is.factor(column)){
-    dict <- dictionaries[[key]]
-    
-    choices <- make_choices(
-      column = column,
-      dict = dict
-    )
+    choices <- gtools$mixedsort(unique(column))
     ui <- picker$ui(
       id = ns(id),
       label = label,
@@ -137,19 +131,5 @@ generate_filter_module <- function(id, column, key, Input_data, ns, dictionaries
     ui = ui,
     server = server
   )
-}
-
-make_choices <- function(column, dict = NULL){
-  choices <- unique(column)
-  
-  if (is.null(dict)){
-    choices
-  } else {
-    names(choices) <- data_utils$map_dictionary(
-      ids = choices,
-      dict = dict
-    )
-    choices
-  }
 }
 

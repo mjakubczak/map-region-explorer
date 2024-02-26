@@ -90,10 +90,7 @@ server <- function(id, Count_data, Location_data) {
           selected_locations = selected_locations
         )
         
-        data_utils$prettify_data(
-          df = df,
-          dictionaries = count_data$dictionaries
-        )
+        data_utils$prettify_data(df)
       })
       
       table$server(

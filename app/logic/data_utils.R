@@ -70,10 +70,7 @@ read_file <- function(file_details, data_dir, sort_factor_levels = TRUE){
   
   for (key in names(labels)){
     if (key %in% colnames(df)){
-      df[[key]] <- set_label_attr(
-        x = df[[key]],
-        label = labels[[key]]
-      )
+      set_label_attr(df[[key]]) <- labels[[key]]
     }
   }
   
@@ -91,8 +88,8 @@ get_label_attr <- function(x){
   attr(x, "label")
 }
 
-set_label_attr <- function(x, label){
-  attr(x, "label") <- label
+`set_label_attr<-` <- function(x, value){
+  attr(x, "label") <- value
   x
 }
 
@@ -154,11 +151,18 @@ parse_counts <- function(count_data_def, data_dir){
   )
   names(dictionaries) <- purrr$map_chr(dictionaries, ~ .x$explained_col)
   
+  for (key in names(dictionaries)){
+    count_df[[key]] <- map_dictionary(
+      ids = count_df[[key]],
+      dict = dictionaries[[key]],
+      keep_factors = TRUE
+    )
+  }
+  
   list(
     df = count_df,
     count_col = count_data_def[["count_col"]],
-    location_id_col = count_data_def[["location_id_col"]],
-    dictionaries = dictionaries
+    location_id_col = count_data_def[["location_id_col"]]
   )
 }
 
@@ -254,10 +258,7 @@ join_summarized_counts_and_locations <- function(count_data, location_data, tota
     location_data = location_data
   )
   
-  merged_df[[".total"]] <- set_label_attr(
-    x = merged_df[[".total"]],
-    label = total_label
-  )
+  set_label_attr(merged_df[[".total"]]) <- total_label
   
   list(
     df = merged_df,
@@ -278,13 +279,25 @@ filter_locations <- function(count_data, location_data, selected_locations){
     dplyr$select(!!id_col_sym, !!label_col_sym) |>
     dplyr$distinct()
   
-  merge_counts_and_locations(
+  res <- merge_counts_and_locations(
     count_data = count_data,
     location_data = location_data
   ) |>
     dplyr$filter(!!label_col_sym %in% selected_locations) |>
-    dplyr$select(-!!count_location_id_col) |>
-    droplevels()
+    dplyr$select(-!!count_location_id_col)
+  
+  labels <- lapply(
+    X = res,
+    FUN = get_label_attr
+  )
+    
+  res <- droplevels(res) # droplevels also drops label attribute, so it's essential to restore them afterwards
+  
+  for (key in names(res)){
+    set_label_attr(res[[key]]) <- labels[[key]]
+  }
+  
+  res
 }
 
 merge_counts_and_locations <- function(count_data, location_data){
@@ -313,6 +326,7 @@ map_dictionary <- function(ids, dict, keep_factors = FALSE){
   }
   
   is_factor <- is.factor(ids)
+  label_attr <- get_label_attr(ids)
   
   labels_df <- dict$df[idx, ]
   dict_labels <- labels_df[[dict$label_col]]
@@ -324,25 +338,19 @@ map_dictionary <- function(ids, dict, keep_factors = FALSE){
   }
   
   if (keep_factors && is_factor){
-    mixsort_factor(res)
-  } else {
-    res
+    res <- mixsort_factor(res)
   }
+  
+  if (!is.null(label_attr)){
+    set_label_attr(res) <- label_attr
+  }
+  
+  res
 }
 
 #' @export
-prettify_data <- function(df, dictionaries){
+prettify_data <- function(df){
   labels <- get_column_labels(df)
-  
-  for (key in names(dictionaries)){
-    df[[key]] <- map_dictionary(
-      ids = df[[key]],
-      dict = dictionaries[[key]],
-      keep_factors = TRUE
-    )
-  }
-  
   names(df) <- labels
-  
   df
 }
