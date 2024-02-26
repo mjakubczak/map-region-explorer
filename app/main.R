@@ -34,10 +34,10 @@ ui <- function(id) {
         title = settings[["map_title"]]
       )
     ),
-    bslib$nav_panel(
-      title = "Plots",
-      "to be developed"
-    ),
+    # bslib$nav_panel(
+    #   title = "Plots",
+    #   "to be developed"
+    # ),
     bslib$nav_spacer(),
     bslib$nav_item(shiny$div(
       paste0("v", settings[["version"]])
