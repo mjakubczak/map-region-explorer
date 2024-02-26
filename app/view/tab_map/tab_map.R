@@ -82,7 +82,7 @@ server <- function(id, Count_data, Location_data) {
           selected_locations = selected_locations
         )
         
-        prettify_data(
+        data_utils$prettify_data(
           df = df,
           dictionaries = count_data$dictionaries
         )

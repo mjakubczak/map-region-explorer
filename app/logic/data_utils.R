@@ -283,7 +283,8 @@ filter_locations <- function(count_data, location_data, selected_locations){
     location_data = location_data
   ) |>
     dplyr$filter(!!label_col_sym %in% selected_locations) |>
-    dplyr$select(-!!count_location_id_col)
+    dplyr$select(-!!count_location_id_col) |>
+    droplevels()
 }
 
 merge_counts_and_locations <- function(count_data, location_data){

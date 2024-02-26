@@ -19,8 +19,9 @@ box::use(
 ui <- function(id, title, width = 700, height = 700) {
   ns <- shiny$NS(id)
   
-  help_text <- paste(
-    "Click on the map region to highlight it.",
+  help_text <- paste0(
+    "Click on the map region to highlight it. ",
+    "Use shift key to select multiple regions.\n",
     "Double click outside the regions to reset."
   )
   
