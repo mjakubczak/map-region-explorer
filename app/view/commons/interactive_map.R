@@ -32,7 +32,7 @@ ui <- function(id, title, width = 700, height = 700) {
     bslib$card_body(
       fillable = FALSE,
       shiny$div(
-        class = "d-flex justify-content-center",
+        class = "map-container d-flex justify-content-center",
         plotly$plotlyOutput(
           outputId = ns("map"),
           width = width,

@@ -19,5 +19,9 @@ export function register_custom_click_handler(el, x, data) {
   
   el.on(data.off_event, function(){
     update_shiny(null);
-  })
+  });
+  
+  $(el).closest('.map-container').on('dblclick', function(evt){
+    el.emit(data.off_event, null);
+  });
 }
