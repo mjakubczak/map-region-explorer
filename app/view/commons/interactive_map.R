@@ -1,5 +1,5 @@
 box::use(
-  shiny = shiny[NS, moduleServer, reactive, req],
+  shiny = shiny[NS, moduleServer, reactive, validate, need],
   bslib = bslib[card, card_header, card_body],
   shinycssloaders = shinycssloaders[withSpinner],
   plotly = plotly[plotlyOutput, renderPlotly, highlight_key, ggplotly, highlight],
@@ -10,7 +10,7 @@ box::use(
 )
 
 box::use(
-  app_utils = app/logic/app_utils[help_icon],
+  app_utils = app/logic/app_utils[help_icon, check_filled_df],
   map_utils = app/logic/map_utils[generate_map_plot],
   data_utils = app/logic/data_utils[get_column_labels],
 )
@@ -57,7 +57,10 @@ server <- function(id, Input_data, title) {
       
       output$map <- plotly$renderPlotly({
         input_data <- Input_data()
-        shiny$req(input_data)
+        shiny$validate(shiny$need(
+          expr = app_utils$check_filled_df(input_data$df), 
+          message = "no data to display"
+        ))
         
         prepare_interactive_map(
           df = input_data$df,

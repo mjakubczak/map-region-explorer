@@ -71,7 +71,8 @@ server <- function(id, Input_data){
             eventExpr = Chain_output(), # the last submodule output, in fact
             handlerExpr = {
               Filtered_data(Chain_output())
-            }
+            },
+            ignoreNULL = FALSE
           )
         }
       )

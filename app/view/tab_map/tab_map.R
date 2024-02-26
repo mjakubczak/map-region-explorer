@@ -1,11 +1,12 @@
 box::use(
-  shiny = shiny[NS, moduleServer, reactive, req, validate],
+  shiny = shiny[NS, moduleServer, reactive, req, validate, need],
   bslib = bslib[layout_sidebar, sidebar]
 )
 
 box::use(
   data_utils = app/logic/data_utils[join_summarized_counts_and_locations, filter_locations,
-                                    prettify_data]
+                                    prettify_data],
+  app_utils = app/logic/app_utils[check_filled_df]
 )
 
 box::use(
@@ -47,8 +48,16 @@ server <- function(id, Count_data, Location_data) {
       
       Joined_data <- shiny$reactive({
         count_data <- Filtered_count_data()
+        shiny$validate(shiny$need(
+          expr = app_utils$check_filled_df(count_data$df), 
+          message = "no data available"
+        ))
+        
         location_data <- Location_data()
-        shiny$req(count_data, location_data)
+        shiny$validate(shiny$need(
+          expr = app_utils$check_filled_df(location_data$df), 
+          message = "no region data available"
+        ))
         
         data_utils$join_summarized_counts_and_locations(
           count_data = count_data,
@@ -70,9 +79,8 @@ server <- function(id, Count_data, Location_data) {
       
       Table_data <- shiny$reactive({
         selected_locations <- Selected_locations()
-        shiny$validate(
-          shiny$need(selected_locations, "click on the map region")
-        )
+        shiny$validate(shiny$need(selected_locations, "click on the map region"))
+        
         count_data <- Filtered_count_data()
         location_data <- Location_data()
         
