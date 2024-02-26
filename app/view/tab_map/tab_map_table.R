@@ -5,7 +5,7 @@ box::use(
 )
 
 box::use(
-  data_utils = app/logic/data_utils[get_column_labels]
+  download = app/view/commons/table_download_dropdown
 )
 
 #' @export
@@ -13,13 +13,17 @@ ui <- function(id, title) {
   ns <- shiny$NS(id)
   
   bslib$card(
-    bslib$card_header(shiny$div(
-      shiny$span(title), 
-      shiny$textOutput(
-        outputId = ns("selection_text"),
-        inline = TRUE
-      )
-    )),
+    bslib$card_header(
+      class = "d-flex justify-content-between align-items-center",
+      shiny$div(
+        shiny$span(title), 
+        shiny$textOutput(
+          outputId = ns("selection_text"),
+          inline = TRUE
+        )
+      ),
+      download$ui(ns("download"))
+    ),
     bslib$card_body(
       fillable = FALSE,
       fill = FALSE,
@@ -34,16 +38,21 @@ server <- function(id, Input_data, Selection_title_text, selection = "none", fil
   shiny$moduleServer(
     id = id,
     module = function(input, output, session){
+      download$server(
+        id = "download",
+        Input_data = Input_data
+      )
+      
       output$selection_text <- shiny$renderText({
         Selection_title_text()
       })
       
       output$table <- DT$renderDataTable({
-        d <- Input_data()
-        shiny$req(d)
+        df <- Input_data()
+        shiny$req(df)
         
         DT$datatable(
-          data = preprocess_data(d),
+          data = df,
           selection = selection,
           filter = filter,
           ...
@@ -51,21 +60,4 @@ server <- function(id, Input_data, Selection_title_text, selection = "none", fil
       })
     }
   )
-}
-
-preprocess_data <- function(d){
-  df <- d$df
-  labels <- data_utils$get_column_labels(df)
-  
-  for (key in names(d$dictionaries)){
-    df[[key]] <- data_utils$map_dictionary(
-      ids = df[[key]],
-      dict = d$dictionaries[[key]],
-      keep_factors = TRUE
-    )
-  }
-  
-  names(df) <- labels
-  
-  df
 }

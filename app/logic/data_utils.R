@@ -328,3 +328,20 @@ map_dictionary <- function(ids, dict, keep_factors = FALSE){
     res
   }
 }
+
+#' @export
+prettify_data <- function(df, dictionaries){
+  labels <- get_column_labels(df)
+  
+  for (key in names(dictionaries)){
+    df[[key]] <- map_dictionary(
+      ids = df[[key]],
+      dict = dictionaries[[key]],
+      keep_factors = TRUE
+    )
+  }
+  
+  names(df) <- labels
+  
+  df
+}

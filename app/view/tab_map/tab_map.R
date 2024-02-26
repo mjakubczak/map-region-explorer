@@ -4,7 +4,8 @@ box::use(
 )
 
 box::use(
-  data_utils = app/logic/data_utils[join_summarized_counts_and_locations, filter_locations]
+  data_utils = app/logic/data_utils[join_summarized_counts_and_locations, filter_locations,
+                                    prettify_data]
 )
 
 box::use(
@@ -75,12 +76,14 @@ server <- function(id, Count_data, Location_data) {
         count_data <- Filtered_count_data()
         location_data <- Location_data()
         
-        list(
-          df = data_utils$filter_locations(
-            count_data = count_data,
-            location_data = location_data,
-            selected_locations = selected_locations
-          ),
+        df <- data_utils$filter_locations(
+          count_data = count_data,
+          location_data = location_data,
+          selected_locations = selected_locations
+        )
+        
+        prettify_data(
+          df = df,
           dictionaries = count_data$dictionaries
         )
       })
