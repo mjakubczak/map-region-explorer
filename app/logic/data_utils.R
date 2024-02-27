@@ -1,35 +1,172 @@
 box::use(
   readr = readr[read_csv, cols_only, col_logical, col_integer, col_double, 
                 col_character, col_factor, col_guess],
-  checkmate = checkmate[assert_list, assert_string, assert_file_exists],
+  checkmate = checkmate[...],
   dplyr = dplyr[select, left_join, filter, distinct, group_by, summarize, mutate, across],
   tidyselect = tidyselect[where],
   purrr = purrr[transpose],
   rlang = rlang[sym],
-  gtools = gtools[mixedsort]
+  gtools = gtools[mixedsort],
+  glue = glue[glue]
 )
 
-assert_nz_string <- function(x, ...){
+assert_nz_string <- function(x, min.chars = 1, .var.name = checkmate::vname(x), ...){
   checkmate$assert_string(
     x = x,
-    min.chars = 1,
+    min.chars = min.chars,
+    .var.name = .var.name,
     ...
   )
 }
 
+# Data load -------------------------------------------------------------------
 #' @export
 prepare_count_data <- function(settings){
+  count_data <- settings[["count_data"]]
+  checkmate$assert_list(count_data)
+  
   parse_counts(
-    count_data_def = settings[["count_data"]],
+    count_data_def = count_data,
     data_dir = settings[["data_dir"]]
   )
 }
 
 #' @export
 prepare_location_data <- function(settings){
+  location_data <- settings[["location_data"]]
+  checkmate$assert_list(location_data)
+  
   parse_locations(
-    location_data_def = settings[["location_data"]],
+    location_data_def = location_data,
     data_dir = settings[["data_dir"]]
+  )
+}
+
+parse_counts <- function(count_data_def, data_dir){
+  file_details <- count_data_def[["file_details"]]
+  checkmate$assert_list(file_details)
+  
+  count_df <- read_file(
+    file_details = file_details,
+    data_dir = data_dir
+  )
+  
+  count_col <- count_data_def[["count_col"]]
+  location_id_col <- count_data_def[["location_id_col"]]
+  
+  validate_column <- function(x, .var.name = checkmate$vname(x)){
+    assert_nz_string(
+      x = x, 
+      .var.name = .var.name
+    )
+    checkmate$assert_true(
+      x = x %in% colnames(count_df),
+      .var.name = glue$glue("{.var.name}: {x} must be present in the count data")
+    )
+  }
+  
+  validate_column(count_col)
+  validate_column(location_id_col)
+  
+  dictionaries <- lapply(
+    X =  count_data_def[["dictionaries"]],
+    FUN = parse_dictionary,
+    data_dir = data_dir
+  )
+  names(dictionaries) <- purrr$map_chr(dictionaries, ~ .x$explained_col)
+  
+  for (key in names(dictionaries)){
+    dict <- dictionaries[[key]]
+    checkmate$assert_true(dict$explained_col %in% colnames(count_df))
+    
+    count_df[[key]] <- map_dictionary(
+      ids = count_df[[key]],
+      dict = dict,
+      keep_factors = TRUE
+    )
+  }
+  
+  list(
+    df = count_df,
+    count_col = count_col,
+    location_id_col = location_id_col
+  )
+}
+
+parse_locations <- function(location_data_def, data_dir){
+  file_details <- location_data_def[["file_details"]]
+  checkmate$assert_list(file_details)
+  
+  location_df <- read_file(
+    file_details = file_details,
+    data_dir = data_dir
+  )
+  
+  id_col <- location_data_def[["id_col"]]
+  label_col <- location_data_def[["label_col"]]
+  x_col <- location_data_def[["x_col"]]
+  y_col <- location_data_def[["y_col"]]
+  
+  validate_column <- function(x, .var.name = checkmate$vname(x)){
+    assert_nz_string(
+      x = x, 
+      .var.name = .var.name
+    )
+    checkmate$assert_true(
+      x = x %in% colnames(location_df),
+      .var.name = glue$glue("{.var.name}: {x} must be present in the location data")
+    )
+  }
+  
+  validate_column(id_col)
+  validate_column(label_col)
+  validate_column(x_col)
+  validate_column(y_col)
+  
+  list(
+    df = location_df,
+    id_col = id_col,
+    label_col = label_col,
+    x_col = x_col,
+    y_col = y_col
+  )
+}
+
+parse_dictionary <- function(dict_data_def, data_dir){
+  dict_df <- read_file(
+    file_details = dict_data_def[["file_details"]],
+    data_dir = data_dir,
+    sort_factor_levels = FALSE
+  )
+  
+  explained_col <- dict_data_def[["explained_col"]]
+  id_col <- dict_data_def[["id_col"]]
+  label_col <- dict_data_def[["label_col"]]
+  show_id <- dict_data_def[["show_id"]]
+  
+  assert_nz_string(explained_col)
+  assert_nz_string(id_col)
+  checkmate$assert_true(id_col %in% colnames(dict_df))
+  assert_nz_string(label_col)
+  checkmate$assert_true(label_col %in% colnames(dict_df))
+  checkmate$assert(
+    checkmate$check_logical(
+      x = show_id,
+      len = 1
+    ),
+    checkmate$check_null(show_id)
+  )
+  
+  if (is.null(show_id)){
+    show_id <- FALSE
+  }
+  
+  list(
+    df = dict_df,
+    explained_col = explained_col,
+    id_col = id_col,
+    label_col = label_col,
+    show_id = show_id
   )
 }
 
@@ -60,6 +197,8 @@ read_file <- function(file_details, data_dir, sort_factor_levels = TRUE){
     args = args
   )
   
+  checkmate$assert_true(nrow(df) > 0)
+  
   if (sort_factor_levels){
     df <- df |>
       dplyr$mutate(dplyr$across(
@@ -77,22 +216,6 @@ read_file <- function(file_details, data_dir, sort_factor_levels = TRUE){
   df
 }
 
-mixsort_factor <- function(x){
-  factor(
-    x = as.character(x),
-    levels = gtools$mixedsort(as.character(unique(x)))
-  )
-}
-
-get_label_attr <- function(x){
-  attr(x, "label")
-}
-
-`set_label_attr<-` <- function(x, value){
-  attr(x, "label") <- value
-  x
-}
-
 parse_col_defs <- function(col_defs){
   checkmate$assert_list(
     x = col_defs,
@@ -100,13 +223,20 @@ parse_col_defs <- function(col_defs){
     names = "named"
   )
   
-  col_defs <- lapply(
-    X = col_defs,
-    FUN = function(x){
-      type <- x[["type"]]
-      assert_nz_string(type)
-      label <- x[["label"]]
-      assert_nz_string(label)
+  col_info <- lapply(
+    X = names(col_defs),
+    FUN = function(col_name){
+      col_def <- col_defs[[col_name]]
+      type <- col_def[["type"]]
+      assert_nz_string(
+        x = type,
+        .var.name = paste0("col_defs['", col_name, "'].type")
+      )
+      label <- col_def[["label"]]
+      assert_nz_string(
+        x = label,
+        .var.name = paste0("col_defs['", col_name, "'].label")
+      )
       
       collector <- switch(
         EXPR = type,
@@ -125,89 +255,67 @@ parse_col_defs <- function(col_defs){
     }
   )
   
-  col_defs <- purrr$transpose(col_defs)
+  names(col_info) <- names(col_defs)
+  col_info <- purrr$transpose(col_info)
   
   types <- do.call(
     what = readr$cols_only,
-    args = col_defs$collector
+    args = col_info$collector
   )
   
   list(
     types = types,
-    labels = col_defs$label
+    labels = col_info$label
   )
 }
 
-parse_counts <- function(count_data_def, data_dir){
-  count_df <- read_file(
-    file_details = count_data_def[["file_details"]],
-    data_dir = data_dir
+map_dictionary <- function(ids, dict, keep_factors = FALSE){
+  checkmate$assert(
+    checkmate$check_character(ids),
+    checkmate$check_factor(ids)
   )
   
-  dictionaries <- lapply(
-    X =  count_data_def[["dictionaries"]],
-    FUN = parse_dictionary,
-    data_dir = data_dir
+  idx <- match(
+    x = ids, 
+    table = dict$df[[dict$id_col]]
   )
-  names(dictionaries) <- purrr$map_chr(dictionaries, ~ .x$explained_col)
   
-  for (key in names(dictionaries)){
-    count_df[[key]] <- map_dictionary(
-      ids = count_df[[key]],
-      dict = dictionaries[[key]],
-      keep_factors = TRUE
-    )
+  if (anyNA(idx)){
+    warning("some IDs don't have label for column ", dict$explained_col)
+    return(ids)
   }
   
-  list(
-    df = count_df,
-    count_col = count_data_def[["count_col"]],
-    location_id_col = count_data_def[["location_id_col"]]
-  )
-}
-
-parse_locations <- function(location_data_def, data_dir){
-  location_df <- read_file(
-    file_details = location_data_def[["file_details"]],
-    data_dir = data_dir
-  )
+  is_factor <- is.factor(ids)
+  label_attr <- get_label_attr(ids)
   
-  list(
-    df = location_df,
-    id_col = location_data_def[["id_col"]],
-    label_col = location_data_def[["label_col"]],
-    x_var = location_data_def[["x_var"]],
-    y_var = location_data_def[["y_var"]]
-  )
-}
-
-parse_dictionary <- function(dict_data_def, data_dir){
-  dict_df <- read_file(
-    file_details = dict_data_def[["file_details"]],
-    data_dir = data_dir,
-    sort_factor_levels = FALSE
-  )
+  labels_df <- dict$df[idx, ]
+  dict_labels <- labels_df[[dict$label_col]]
+  res <- if (isTRUE(dict$show_id)){
+    dict_ids <- labels_df[[dict$id_col]]
+    paste(dict_ids, dict_labels, sep = " - ")
+  } else {
+    dict_labels
+  }
   
-  list(
-    df = dict_df,
-    explained_col = dict_data_def[["explained_col"]],
-    id_col = dict_data_def[["id_col"]],
-    label_col = dict_data_def[["label_col"]],
-    show_id = dict_data_def[["show_id"]]
-  )
+  if (keep_factors && is_factor){
+    res <- mixsort_factor(res)
+  }
+  
+  if (!is.null(label_attr)){
+    set_label_attr(res) <- label_attr
+  }
+  
+  res
 }
 
-#' @export
-get_available_colnames <- function(df){
-  UseMethod("get_available_colnames")
+# Labels ----------------------------------------------------------------------
+get_label_attr <- function(x){
+  attr(x, "label")
 }
 
-get_available_colnames.data.frame <- function(df){
-  colnames(df)
-}
-
-get_available_colnames.SharedData <- function(df){
-  get_available_colnames(df$origData())
+`set_label_attr<-` <- function(x, value){
+  attr(x, "label") <- value
+  x
 }
 
 #' @export
@@ -215,7 +323,7 @@ get_column_labels <- function(df){
   UseMethod("get_column_labels")
 }
 
-get_column_labels.data.frame <- function(df){
+get_column_labels.default <- function(df){
   res <- lapply(
     X = colnames(df),
     FUN = function(x){
@@ -244,6 +352,7 @@ get_column_label <- function(column, key){
   }
 }
 
+# App helpers -----------------------------------------------------------------
 #' @export
 join_summarized_counts_and_locations <- function(count_data, location_data, total_label = "Total count"){
   count_col_sym <- rlang$sym(count_data$count_col)
@@ -262,8 +371,8 @@ join_summarized_counts_and_locations <- function(count_data, location_data, tota
   
   list(
     df = merged_df,
-    x_var = location_data$x_var,
-    y_var = location_data$y_var,
+    x_col = location_data$x_col,
+    y_col = location_data$y_col,
     fill_var = ".total",
     group_var = location_data$label_col
   )
@@ -314,43 +423,29 @@ merge_counts_and_locations <- function(count_data, location_data){
 }
 
 #' @export
-map_dictionary <- function(ids, dict, keep_factors = FALSE){
-  idx <- match(
-    x = ids, 
-    table = dict$df[[dict$id_col]]
-  )
-  
-  if (anyNA(idx)){
-    warning("some IDs don't have label for column ", dict$explained_col)
-    return(ids)
-  }
-  
-  is_factor <- is.factor(ids)
-  label_attr <- get_label_attr(ids)
-  
-  labels_df <- dict$df[idx, ]
-  dict_labels <- labels_df[[dict$label_col]]
-  res <- if (isTRUE(dict$show_id)){
-    dict_ids <- labels_df[[dict$id_col]]
-    paste(dict_ids, dict_labels, sep = " - ")
-  } else {
-    dict_labels
-  }
-  
-  if (keep_factors && is_factor){
-    res <- mixsort_factor(res)
-  }
-  
-  if (!is.null(label_attr)){
-    set_label_attr(res) <- label_attr
-  }
-  
-  res
-}
-
-#' @export
 prettify_data <- function(df){
   labels <- get_column_labels(df)
   names(df) <- labels
   df
+}
+
+# General helpers -------------------------------------------------------------
+mixsort_factor <- function(x){
+  factor(
+    x = as.character(x),
+    levels = gtools$mixedsort(as.character(unique(x)))
+  )
+}
+
+#' @export
+get_available_colnames <- function(df){
+  UseMethod("get_available_colnames")
+}
+
+get_available_colnames.default <- function(df){
+  colnames(df)
+}
+
+get_available_colnames.SharedData <- function(df){
+  get_available_colnames(df$origData())
 }

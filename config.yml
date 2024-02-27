@@ -11,7 +11,7 @@ default:
       file_name: "cancer_data.csv"
       col_defs:
         year: 
-          type: "double"
+          type: "integer"
           label: "Year"
         voivodeship: 
           type: "factor"
@@ -63,7 +63,7 @@ default:
           label: "Y"
     id_col: "id"
     label_col: "label"
-    x_var: "x"
-    y_var: "y"
+    x_col: "x"
+    y_col: "y"
     
   map_title: "Cancer in Poland"

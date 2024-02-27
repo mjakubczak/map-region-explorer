@@ -13,7 +13,7 @@ box::use(
 generate_map_plot <- function(polygon_data, title = NULL, x_var = "x", y_var = "y", 
                               fill_var = "count", group_var = "group",
                               fill_low_color = "yellow", fill_high_color = "red",
-                              color = "gray70", size = 0.1){
+                              color = "gray70", linewidth = 0.1){
   checkmate$assert(
     checkmate$check_data_frame(polygon_data),
     checkmate$check_class(polygon_data, "SharedData")
@@ -30,7 +30,7 @@ generate_map_plot <- function(polygon_data, title = NULL, x_var = "x", y_var = "
   checkmate$assert_string(fill_high_color)
   checkmate$assert_string(color)
   checkmate$assert_numeric(
-    x = size,
+    x = linewidth,
     lower = 0.1,
     finite = TRUE,
     len = 1
@@ -50,7 +50,7 @@ generate_map_plot <- function(polygon_data, title = NULL, x_var = "x", y_var = "
     ggplot2$geom_polygon(
       data = polygon_data, 
       color = color, 
-      size = size,
+      linewidth = linewidth,
       ggplot2$aes(
         x = !!x_var_sym, 
         y = !!y_var_sym, 

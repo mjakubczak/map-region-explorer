@@ -65,8 +65,8 @@ server <- function(id, Input_data, title) {
         prepare_interactive_map(
           df = input_data$df,
           input_id = session$ns(input_id),
-          x_var = input_data$x_var,
-          y_var = input_data$y_var,
+          x_var = input_data$x_col,
+          y_var = input_data$y_col,
           fill_var = input_data$fill_var,
           group_var = input_data$group_var
         )
