@@ -239,7 +239,7 @@ test_that(
       total_label = "Test label"
     )
     expect_is(merged_data, "list")
-    expect_named(merged_data, c("df", "x_col", "y_col", "fill_var", "group_var"))
+    expect_named(merged_data, c("df", "x_col", "y_col", "fill_col", "group_col"))
     expect_is(merged_data$df, "data.frame")
     expect_equal(colnames(merged_data$df), c("region_id", ".total", "label", "x", "y"))
     expect_equal(nrow(merged_data$df), 14)

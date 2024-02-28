@@ -6,5 +6,5 @@ default:
   version: "0.1.0"
   
   data:
-    config_file: "config_data.yml"
-    profile: "pl_cancer_data"
+    config_file: !expr Sys.getenv("DATA_CONFIG_FILE", "config_data.yml")
+    profile: !expr Sys.getenv("DATA_CONFIG_PROFILE", "pl_cancer_data")

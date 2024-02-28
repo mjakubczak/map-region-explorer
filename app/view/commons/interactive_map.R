@@ -67,8 +67,8 @@ server <- function(id, Input_data, title) {
           input_id = session$ns(input_id),
           x_var = input_data$x_col,
           y_var = input_data$y_col,
-          fill_var = input_data$fill_var,
-          group_var = input_data$group_var
+          fill_col = input_data$fill_col,
+          group_col = input_data$group_col
         )
       })
       
@@ -77,17 +77,17 @@ server <- function(id, Input_data, title) {
   )
 }
 
-prepare_interactive_map <- function(df, input_id, fill_var = "count", group_var = "group", ..., 
+prepare_interactive_map <- function(df, input_id, fill_col = "count", group_col = "group", ..., 
                                     off_event = "plotly_doubleclick", selection_color = "green"){
   
   col_labels <- data_utils$get_column_labels(df)
-  fill_label <- col_labels[[fill_var]]
-  group_label <- col_labels[[group_var]]
+  fill_label <- col_labels[[fill_col]]
+  group_label <- col_labels[[group_col]]
   
   df <- df |>
     dplyr$rename(
-      !!fill_label := fill_var,
-      !!group_label := group_var
+      !!fill_label := fill_col,
+      !!group_label := group_col
     )
   
   group_formula <- stats$as.formula(paste0("~`", group_label, "`"))

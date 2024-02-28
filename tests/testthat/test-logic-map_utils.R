@@ -24,8 +24,8 @@ test_that(
       polygon_data = merged_data$df,
       x_var = merged_data$x_col,
       y_var = merged_data$y_col,
-      fill_var = merged_data$fill_var,
-      group_var = merged_data$group_var
+      fill_var = merged_data$fill_col,
+      group_var = merged_data$group_col
     )
     
     expect_is(p, "ggplot")
@@ -39,24 +39,24 @@ test_that(
       polygon_data = merged_data$df,
       x_var = NULL,
       y_var = merged_data$y_col,
-      fill_var = merged_data$fill_var,
-      group_var = merged_data$group_var
+      fill_var = merged_data$fill_col,
+      group_var = merged_data$group_col
     ))
     
     expect_error(generate_map_plot(
       polygon_data = merged_data$df,
       x_var = "dummy",
       y_var = merged_data$y_col,
-      fill_var = merged_data$fill_var,
-      group_var = merged_data$group_var
+      fill_var = merged_data$fill_col,
+      group_var = merged_data$group_col
     ))
     
     expect_error(generate_map_plot(
       polygon_data = merged_data$df,
       x_var = merged_data$x_col,
       y_var = merged_data$y_col,
-      fill_var = merged_data$fill_var,
-      group_var = merged_data$group_var,
+      fill_var = merged_data$fill_col,
+      group_var = merged_data$group_col,
       linewidth = 0
     ))
   }

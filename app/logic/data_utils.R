@@ -20,6 +20,10 @@ assert_nz_string <- function(x, min.chars = 1, .var.name = checkmate::vname(x), 
 }
 
 # Data load -------------------------------------------------------------------
+#' Prepare count data
+#' 
+#' @param settings list, general data configuration
+#' @return list with fields: df, count_col, location_id_col
 #' @export
 prepare_count_data <- function(settings){
   count_data <- settings[["count_data"]]
@@ -31,6 +35,10 @@ prepare_count_data <- function(settings){
   )
 }
 
+#' Prepare location data
+#' 
+#' @param settings list, general data configuration
+#' @return list with fields: df, id_col, label_col, x_col, y_col
 #' @export
 prepare_location_data <- function(settings){
   location_data <- settings[["location_data"]]
@@ -42,6 +50,11 @@ prepare_location_data <- function(settings){
   )
 }
 
+#' Parse count data
+#' 
+#' @param count_data_def list, count data config
+#' @param data_dir character string, data directory
+#' @return list with fields: df, count_col, location_id_col
 parse_counts <- function(count_data_def, data_dir){
   file_details <- count_data_def[["file_details"]]
   checkmate$assert_list(file_details)
@@ -93,6 +106,11 @@ parse_counts <- function(count_data_def, data_dir){
   )
 }
 
+#' Parse location data
+#' 
+#' @param location_data_def list, location data config
+#' @param data_dir character string, data directory
+#' @return list with fields: df, id_col, label_col, x_col, y_col
 parse_locations <- function(location_data_def, data_dir){
   file_details <- location_data_def[["file_details"]]
   checkmate$assert_list(file_details)
@@ -132,6 +150,11 @@ parse_locations <- function(location_data_def, data_dir){
   )
 }
 
+#' Parse dictionary data
+#' 
+#' @param dict_data_def list, dict data config
+#' @param data_dir character string, data directory
+#' @return list with fields: df, explained_col, id_col, label_col, show_id
 parse_dictionary <- function(dict_data_def, data_dir){
   dict_df <- read_file(
     file_details = dict_data_def[["file_details"]],
@@ -170,6 +193,11 @@ parse_dictionary <- function(dict_data_def, data_dir){
   )
 }
 
+#' Read file
+#' 
+#' @param file_details list, file config
+#' @param data_dir character string, data directory
+#' @param sort_factor_levels logical, should sort factor levels?
 read_file <- function(file_details, data_dir, sort_factor_levels = TRUE){
   assert_nz_string(data_dir)
   
@@ -216,6 +244,10 @@ read_file <- function(file_details, data_dir, sort_factor_levels = TRUE){
   df
 }
 
+#' Parse column definitions
+#' 
+#' @param col_defs named list, column definitions
+#' @return list with fields: types, labels
 parse_col_defs <- function(col_defs){
   checkmate$assert_list(
     x = col_defs,
@@ -269,6 +301,11 @@ parse_col_defs <- function(col_defs){
   )
 }
 
+#' Map dictionary
+#' 
+#' @param ids character or factor, values to be mapped (usually IDs)
+#' @param dict list, parse_dictionary function output
+#' @param keep_factors logical, should keep factor class? 
 map_dictionary <- function(ids, dict, keep_factors = FALSE){
   checkmate$assert(
     checkmate$check_character(ids),
@@ -309,15 +346,30 @@ map_dictionary <- function(ids, dict, keep_factors = FALSE){
 }
 
 # Labels ----------------------------------------------------------------------
+#' Get label attribute
+#' 
+#' @param x vector
+#' @return character string (if label exists) or NULL
 get_label_attr <- function(x){
   attr(x, "label")
 }
 
+#' Set label attribute
+#' 
+#' @param x any object
+#' @param value label to be assigned
+#' @return updated x
 `set_label_attr<-` <- function(x, value){
   attr(x, "label") <- value
   x
 }
 
+#' Get column labels
+#' 
+#' Returns labels assigned to every column in data.frame-like object
+#' 
+#' @param df data.frame-like object
+#' @return list
 #' @export
 get_column_labels <- function(df){
   UseMethod("get_column_labels")
@@ -342,6 +394,11 @@ get_column_labels.SharedData <- function(df){
   get_column_labels(df$origData())
 }
 
+#' Get column label
+#'
+#' @param column any vector
+#' @param key character string, fallback value if label does not exist
+#' @return character string
 #' @export
 get_column_label <- function(column, key){
   label <- get_label_attr(column)
@@ -353,6 +410,14 @@ get_column_label <- function(column, key){
 }
 
 # App helpers -----------------------------------------------------------------
+#' Join summarized counts and locations
+#'
+#' This function aggregates counts by location and joins it with the location data
+#'
+#' @param count_data list, result of parse_counts function
+#' @param location_data list, result of parse_locations functions
+#' @param total_label character string, label for the aggregated column
+#' @return list with fields: df, x_col, y_col, fill_col, group_col
 #' @export
 join_summarized_counts_and_locations <- function(count_data, location_data, total_label = "Total count"){
   count_col_sym <- rlang$sym(count_data$count_col)
@@ -373,11 +438,17 @@ join_summarized_counts_and_locations <- function(count_data, location_data, tota
     df = merged_df,
     x_col = location_data$x_col,
     y_col = location_data$y_col,
-    fill_var = ".total",
-    group_var = location_data$label_col
+    fill_col = ".total",
+    group_col = location_data$label_col
   )
 }
 
+#' Filter locations
+#'
+#' @param count_data list, result of parse_counts function
+#' @param location_data list, result of parse_locations functions
+#' @param selected_locations vector of selected location labels
+#' @return data.frame
 #' @export
 filter_locations <- function(count_data, location_data, selected_locations){
   id_col_sym <- rlang$sym(location_data$id_col)
@@ -409,6 +480,13 @@ filter_locations <- function(count_data, location_data, selected_locations){
   res
 }
 
+#' Merge counts and locations
+#'
+#' Helper function that merges counts and locations by proper columns
+#'
+#' @param count_data list, result of parse_counts function
+#' @param location_data list, result of parse_locations functions
+#' @return data.frame
 merge_counts_and_locations <- function(count_data, location_data){
   count_col_sym <- rlang$sym(count_data$count_col)
   location_col_sym <- rlang$sym(count_data$location_id_col)
@@ -422,6 +500,10 @@ merge_counts_and_locations <- function(count_data, location_data){
     dplyr$left_join(location_data$df, by = merge_def)
 }
 
+#' Prettify data
+#' 
+#' @param df data.frame
+#' @return pretty df
 #' @export
 prettify_data <- function(df){
   labels <- get_column_labels(df)
@@ -430,6 +512,12 @@ prettify_data <- function(df){
 }
 
 # General helpers -------------------------------------------------------------
+#' Sort factor levels
+#'
+#' Sort factor levels using mixedsort approach
+#'
+#' @param x factor-like object
+#' @return factor
 mixsort_factor <- function(x){
   factor(
     x = as.character(x),
@@ -437,6 +525,10 @@ mixsort_factor <- function(x){
   )
 }
 
+#' Get available colnames
+#'
+#' @param df data.frame-like object
+#' @return character vector
 #' @export
 get_available_colnames <- function(df){
   UseMethod("get_available_colnames")

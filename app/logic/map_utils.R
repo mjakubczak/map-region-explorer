@@ -9,6 +9,19 @@ box::use(
   data_utils = app/logic/data_utils[get_column_labels, get_available_colnames]
 )
 
+#' Generate map plot
+#' 
+#' @param polygon_data data.frame or SharedData object
+#' @param title optional character string
+#' @param x_var character string, polygon_data column with X data
+#' @param y_var character string, polygon_data column with Y data
+#' @param fill_var character string, polygon_data column with fill data
+#' @param group_var character string, polygon_data column with group data
+#' @param fill_low_color character string, low color in scale_fill_gradient
+#' @param fill_high_color character string, high color in scale_fill_gradient
+#' @param color character string, region border color
+#' @param linewidth positive numeric, region border width
+#' @return ggplot object
 #' @export
 generate_map_plot <- function(polygon_data, title = NULL, x_var = "x", y_var = "y", 
                               fill_var = "count", group_var = "group",
