@@ -35,7 +35,7 @@ ui <- function(id) {
       title = "Map",
       tab_map$ui(
         id = ns("map"),
-        title = settings[["data"]][["title"]]
+        title = data_settings[["title"]]
       )
     ),
     # bslib$nav_panel(
