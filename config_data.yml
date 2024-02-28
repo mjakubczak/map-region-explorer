@@ -6,7 +6,7 @@ default:
 
 pl_cancer_data:
   title: "Cancer in Poland"
-  data_dir: "app/data"
+  data_dir: "./data/pl_cancer_data"
 
   count_data:
     file_details:
@@ -70,7 +70,7 @@ pl_cancer_data:
 
 test_data:
   title: "Dummy data"
-  data_dir: "tests/testthat/data"
+  data_dir: "./tests/testthat/data"
 
   count_data:
     file_details:
