@@ -1,0 +1,107 @@
+default:
+  title: "Dummy data"
+  data_dir: "tests/testthat/data"
+
+  count_data:
+    file_details:
+      file_name: "test_count_data.csv"
+      col_defs:
+        region_id: 
+          type: "factor"
+          label: "Region ID"
+        fraction: 
+          type: "factor"
+          label: "Fraction"
+        foo: 
+          type: "integer"
+          label: "Foo bar"
+        count: 
+          type: "integer"
+          label: "Count"
+    count_col: "count"
+    location_id_col: "region_id"
+    
+  location_data:
+    file_details:
+      file_name: "test_region_data.csv"
+      col_defs:
+        id: 
+          type: "factor"
+          label: "Region ID"
+        label: 
+          type: "factor"
+          label: "Region name"
+        x: 
+          type: "double"
+          label: "X"
+        "y": 
+          type: "double"
+          label: "Y"
+    id_col: "id"
+    label_col: "label"
+    x_col: "x"
+    y_col: "y"
+    
+pl_cancer_data:
+  title: "Cancer in Poland"
+  data_dir: "app/data"
+
+  count_data:
+    file_details:
+      file_name: "cancer_data.csv"
+      col_defs:
+        year: 
+          type: "integer"
+          label: "Year"
+        voivodeship: 
+          type: "factor"
+          label: "Voivodeship"
+        sex: 
+          type: "factor"
+          label: "Sex"
+        icd10: 
+          type: "factor"
+          label: "ICD-10"
+        age: 
+          type: "factor"
+          label: "Age"
+        count: 
+          type: "integer"
+          label: "Count"
+    count_col: "count"
+    location_id_col: "voivodeship"
+    dictionaries:
+      - explained_col: "icd10"
+        file_details:
+          file_name: "icd10.csv"
+          col_defs:
+            id: 
+              type: "factor"
+              label: "ICD-10"
+            label: 
+              type: "character"
+              label: "Disease"
+        id_col: "id"
+        label_col: "label"
+        show_id: true
+    
+  location_data:
+    file_details:
+      file_name: "voivodeships.csv"
+      col_defs:
+        id: 
+          type: "factor"
+          label: "Voivodeship ISO ID"
+        label: 
+          type: "factor"
+          label: "Voivodeship"
+        x: 
+          type: "double"
+          label: "X"
+        "y": 
+          type: "double"
+          label: "Y"
+    id_col: "id"
+    label_col: "label"
+    x_col: "x"
+    y_col: "y"

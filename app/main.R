@@ -13,6 +13,10 @@ box::use(
 )
 
 settings <- config$get()
+data_settings <- config$get(
+  file = settings[["data"]][["config_file"]],
+  config = settings[["data"]][["profile"]]
+)
 
 # app -------------------------------------------------------------------------
 #' @export
@@ -31,7 +35,7 @@ ui <- function(id) {
       title = "Map",
       tab_map$ui(
         id = ns("map"),
-        title = settings[["map_title"]]
+        title = settings[["data"]][["title"]]
       )
     ),
     # bslib$nav_panel(
@@ -49,12 +53,12 @@ ui <- function(id) {
 server <- function(id) {
   moduleServer(id, function(input, output, session) {
     Count_data <- shiny$reactive({
-      data_utils$prepare_count_data(settings)
+      data_utils$prepare_count_data(data_settings)
     }) |>
       shiny$bindCache("dummy", cache = "app")
     
     Location_data <- shiny$reactive({
-      data_utils$prepare_location_data(settings)
+      data_utils$prepare_location_data(data_settings)
     }) |>
       shiny$bindCache("dummy", cache = "app")
     
