@@ -1,7 +1,8 @@
 box::use(
   shiny = shiny[NS, moduleServer, div, tags, bindCache],
   bslib = bslib[page_navbar, nav_panel, nav_spacer, nav_item, bs_theme],
-  config = config[get]
+  config = config[get],
+  shinyjs = shinyjs[useShinyjs]
 )
 
 box::use(
@@ -30,6 +31,8 @@ ui <- function(id) {
       version = 5,
       preset = "yeti"
     ),
+    
+    header = shinyjs$useShinyjs(),
     
     bslib$nav_panel(
       title = "Map",
