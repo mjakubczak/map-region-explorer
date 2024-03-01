@@ -1,37 +1,43 @@
-export function register_custom_click_handler(el, x, data) {
+export function registerCustomClickHandler(el, x, data) {
   if (!data.input_id || !data.off_event) return;
-  
-  let selected_regions = [];
-  
-  function update_shiny(){
-    let unique_regions = [...new Set(selected_regions)]; // just in case of some weird plotly behavior
-    Shiny.setInputValue(data.input_id, unique_regions);
-  };
-  
-  function reset(){
-    selected_regions = [];
-    update_shiny(); 
+
+  let selectedRegions = [];
+
+  function updateShiny() {
+    // just in case of some weird plotly behavior
+    const uniqueRegions = [...new Set(selectedRegions)];
+    Shiny.setInputValue(data.input_id, uniqueRegions);
   }
-  
+
+  function reset() {
+    selectedRegions = [];
+    updateShiny();
+  }
+
   reset(); // reset on update
-  
-  el.on('plotly_click', function(d) {
-    if (d.points.length > 0){
-      let point = d.points[0];
-      let label = point.data.key[0];
-      
-      if (label){
-        selected_regions.push(label);
-        update_shiny();
+
+  el.on('plotly_click', (d) => {
+    if (d.points.length > 0) {
+      const point = d.points[0];
+      const label = point.data.key[0];
+
+      if (label) {
+        if (d.event.shiftKey) {
+          selectedRegions.push(label);
+        } else {
+          selectedRegions = [label];
+        }
+
+        updateShiny();
       }
     }
   });
-  
-  el.on(data.off_event, function(){
+
+  el.on(data.off_event, () => {
     reset();
   });
-  
-  $(el).closest('.map-container').on('dblclick', function(evt){
+
+  $(el).closest('.map-container').on('dblclick', () => {
     // force event when clicking on container
     el.emit(data.off_event, null);
   });

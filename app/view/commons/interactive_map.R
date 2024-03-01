@@ -108,7 +108,7 @@ prepare_interactive_map <- function(df, input_id, fill_col = "count", group_col 
       color = selection_color
     ) |>
     htmlwidgets$onRender(
-      jsCode = "App.register_custom_click_handler",
+      jsCode = "App.registerCustomClickHandler",
       data = list(
         input_id = input_id,
         off_event = off_event
