@@ -14,6 +14,10 @@ jobs:
         run: |
           packages=(
             # List each package on a separate line.
+            libudunits2-dev 
+            libgdal-dev 
+            libgeos-dev 
+            libproj-dev 
           )
           sudo apt-get update
           sudo apt-get install --yes "${packages[@]}"
