@@ -23,17 +23,14 @@ data_settings <- config$get(
 #' @export
 ui <- function(id) {
   ns <- NS(id)
-  
+
   bslib$page_navbar(
     title = settings[["app_name"]],
-    
     theme = bslib$bs_theme(
       version = 5,
       preset = "yeti"
     ),
-    
     header = shinyjs$useShinyjs(),
-    
     bslib$nav_panel(
       title = "Map",
       tab_map$ui(
@@ -41,10 +38,6 @@ ui <- function(id) {
         title = data_settings[["title"]]
       )
     ),
-    # bslib$nav_panel(
-    #   title = "Plots",
-    #   "to be developed"
-    # ),
     bslib$nav_spacer(),
     bslib$nav_item(shiny$div(
       paste0("v", settings[["version"]])
@@ -59,12 +52,12 @@ server <- function(id) {
       data_utils$prepare_count_data(data_settings)
     }) |>
       shiny$bindCache("dummy", cache = "app")
-    
+
     Location_data <- shiny$reactive({
       data_utils$prepare_location_data(data_settings)
     }) |>
       shiny$bindCache("dummy", cache = "app")
-    
+
     tab_map$server(
       id = "map",
       Count_data = Count_data,

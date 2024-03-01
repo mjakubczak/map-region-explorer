@@ -26,15 +26,15 @@ shapes <- sf::st_read("voiv.shp")
 voivodeships <- shapes %>%
   split(., .$SP_ID_1) |>
   purrr::map_dfr(
-    .f = function(x){
+    .f = function(x) {
       g <- x$geometry[[1]][[1]]
-      
+
       list(
         label = x$names_asci[1],
         x = g[, 1],
         y = g[, 2]
       )
-    }, 
+    },
     .id = "id"
   )
 

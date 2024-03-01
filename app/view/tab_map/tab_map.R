@@ -4,8 +4,10 @@ box::use(
 )
 
 box::use(
-  data_utils = app/logic/data_utils[join_summarized_counts_and_locations, filter_locations,
-                                    prettify_data],
+  data_utils = app/logic/data_utils[
+    join_summarized_counts_and_locations, filter_locations,
+    prettify_data
+  ],
   app_utils = app/logic/app_utils[check_filled_df]
 )
 
@@ -18,7 +20,7 @@ box::use(
 #' @export
 ui <- function(id, title = "The map") {
   ns <- shiny$NS(id)
-  
+
   bslib$layout_sidebar(
     fillable = FALSE,
     sidebar = bslib$sidebar(
@@ -39,60 +41,60 @@ ui <- function(id, title = "The map") {
 #' @export
 server <- function(id, Count_data, Location_data) {
   shiny$moduleServer(
-    id = id, 
+    id = id,
     module = function(input, output, session) {
       Filtered_count_data <- filters$server(
         id = "filters",
         Input_data = Count_data
       )
-      
+
       Joined_data <- shiny$reactive({
         count_data <- Filtered_count_data()
         shiny$validate(shiny$need(
-          expr = app_utils$check_filled_df(count_data$df), 
+          expr = app_utils$check_filled_df(count_data$df),
           message = "no data available"
         ))
-        
+
         location_data <- Location_data()
         shiny$validate(shiny$need(
-          expr = app_utils$check_filled_df(location_data$df), 
+          expr = app_utils$check_filled_df(location_data$df),
           message = "no region data available"
         ))
-        
+
         data_utils$join_summarized_counts_and_locations(
           count_data = count_data,
           location_data = location_data
         )
       })
-      
+
       Selected_locations <- interactive_map$server(
         id = "map",
         Input_data = Joined_data
       )
-      
+
       Selection_title_text <- shiny$reactive({
         selected_locations <- Selected_locations()
         shiny$req(selected_locations)
-        
+
         paste0("for selected region(s): ", paste(selected_locations, collapse = ", "))
       })
-      
+
       Table_data <- shiny$reactive({
         selected_locations <- Selected_locations()
         shiny$validate(shiny$need(selected_locations, "click on the map region"))
-        
+
         count_data <- Filtered_count_data()
         location_data <- Location_data()
-        
+
         df <- data_utils$filter_locations(
           count_data = count_data,
           location_data = location_data,
           selected_locations = selected_locations
         )
-        
+
         data_utils$prettify_data(df)
       })
-      
+
       table$server(
         id = "table",
         Input_data = Table_data,

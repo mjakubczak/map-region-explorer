@@ -6,11 +6,11 @@ box::use(
 )
 
 #' @export
-ui <- function(id, inline = TRUE){
+ui <- function(id, inline = TRUE) {
   ns <- shiny$NS(id)
-  
+
   button_id <- ns("button")
-  
+
   button_html <- shiny$tags$button(
     class = "btn btn-secondary dropdown-toggle",
     type = "button",
@@ -20,7 +20,7 @@ ui <- function(id, inline = TRUE){
     shiny$icon("download"),
     "Download"
   )
-  
+
   shiny$div(
     class = "dropdown",
     shinyjs$disabled(button_html),
@@ -40,43 +40,43 @@ ui <- function(id, inline = TRUE){
 }
 
 #' @export
-server <- function(id, Input_data, file_name = "table"){
+server <- function(id, Input_data, file_name = "table") {
   shiny$moduleServer(
     id = id,
-    module = function(input, output, session){
+    module = function(input, output, session) {
       shiny$observe({
         df <- try(
-          expr = Input_data(), 
+          expr = Input_data(),
           silent = TRUE
         )
-        
+
         shinyjs$toggleState(
           id = "button",
           condition = is.data.frame(df)
         )
       })
-      
+
       output$csv <- shiny$downloadHandler(
-        filename = function(){
+        filename = function() {
           paste0(file_name, ".csv")
         },
-        content = function(file){
+        content = function(file) {
           df <- Input_data()
-          
+
           readr$write_csv(
             x = df,
             file = file
           )
         }
       )
-      
+
       output$xlsx <- shiny$downloadHandler(
-        filename = function(){
+        filename = function() {
           paste0(file_name, ".xlsx")
         },
-        content = function(file){
+        content = function(file) {
           df <- Input_data()
-          
+
           openxlsx$write.xlsx(
             x = df,
             file = file
@@ -87,10 +87,10 @@ server <- function(id, Input_data, file_name = "table"){
   )
 }
 
-dropdown_item <- function(id, label){
+dropdown_item <- function(id, label) {
   shiny$tags$li(
     shiny$downloadLink(
-      outputId = id, 
+      outputId = id,
       class = "dropdown-item",
       label
     )

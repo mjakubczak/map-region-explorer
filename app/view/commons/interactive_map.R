@@ -18,16 +18,16 @@ box::use(
 #' @export
 ui <- function(id, title, width = 700, height = 700) {
   ns <- shiny$NS(id)
-  
+
   help_text <- paste0(
     "Click on the map region to highlight it. ",
     "Use shift key to select multiple regions.\n",
     "Double click outside the regions to reset."
   )
-  
+
   bslib$card(
     bslib$card_header(shiny$div(
-      shiny$span(paste("Interactive map:", title)), 
+      shiny$span(paste("Interactive map:", title)),
       app_utils$help_icon(help_text)
     )),
     bslib$card_body(
@@ -38,7 +38,7 @@ ui <- function(id, title, width = 700, height = 700) {
           outputId = ns("map"),
           width = width,
           height = height
-        ) |> 
+        ) |>
           shinycssloaders$withSpinner(type = 4)
       )
     )
@@ -48,20 +48,20 @@ ui <- function(id, title, width = 700, height = 700) {
 #' @export
 server <- function(id, Input_data, title) {
   shiny$moduleServer(
-    id = id, 
+    id = id,
     module = function(input, output, session) {
       input_id <- "selected_items"
       Selected_items <- shiny$reactive({
         input[[input_id]]
       })
-      
+
       output$map <- plotly$renderPlotly({
         input_data <- Input_data()
         shiny$validate(shiny$need(
-          expr = app_utils$check_filled_df(input_data$df), 
+          expr = app_utils$check_filled_df(input_data$df),
           message = "no data to display"
         ))
-        
+
         prepare_interactive_map(
           df = input_data$df,
           input_id = session$ns(input_id),
@@ -71,31 +71,30 @@ server <- function(id, Input_data, title) {
           group_col = input_data$group_col
         )
       })
-      
+
       Selected_items
     }
   )
 }
 
-prepare_interactive_map <- function(df, input_id, fill_col = "count", group_col = "group", ..., 
-                                    off_event = "plotly_doubleclick", selection_color = "green"){
-  
+prepare_interactive_map <- function(df, input_id, fill_col = "count", group_col = "group", ...,
+                                    off_event = "plotly_doubleclick", selection_color = "green") {
   col_labels <- data_utils$get_column_labels(df)
   fill_label <- col_labels[[fill_col]]
   group_label <- col_labels[[group_col]]
-  
+
   df <- df |>
     dplyr$rename(
       !!fill_label := fill_col,
       !!group_label := group_col
     )
-  
+
   group_formula <- stats$as.formula(paste0("~`", group_label, "`"))
   hl_df <- plotly$highlight_key(
-    x = df, 
+    x = df,
     key = group_formula
   )
-  
+
   map_utils$generate_map_plot(
     polygon_data = hl_df,
     fill_var = fill_label,
@@ -104,7 +103,7 @@ prepare_interactive_map <- function(df, input_id, fill_col = "count", group_col 
   ) |>
     plotly$ggplotly() |>
     plotly$highlight(
-      off = off_event, 
+      off = off_event,
       color = selection_color
     ) |>
     htmlwidgets$onRender(

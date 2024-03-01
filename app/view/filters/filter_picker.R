@@ -4,10 +4,10 @@ box::use(
 )
 
 #' @export
-ui <- function(id, label, choices, actions_box = TRUE, live_search = TRUE, size = 10, 
+ui <- function(id, label, choices, actions_box = TRUE, live_search = TRUE, size = 10,
                selected_text_format = "count > 3", multiple = TRUE) {
   ns <- shiny$NS(id)
-  
+
   shinyWidgets$pickerInput(
     inputId = ns("picker"),
     label = label,
@@ -25,19 +25,19 @@ ui <- function(id, label, choices, actions_box = TRUE, live_search = TRUE, size 
 }
 
 #' @export
-server <- function(id, colname, Input_data){
+server <- function(id, colname, Input_data) {
   shiny$moduleServer(
     id = id,
-    module = function(input, output, session){
+    module = function(input, output, session) {
       Filtered_data <- shiny$reactive({
         input_data <- Input_data()
         value <- input$picker
         df <- input_data$df
-        
+
         input_data$df <- df[df[[colname]] %in% value, ]
         input_data
       })
-      
+
       Filtered_data
     }
   )

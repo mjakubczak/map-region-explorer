@@ -33,7 +33,7 @@ original_path <- getwd()
 tryCatch(
   expr = {
     setwd("tests/testthat/data")
-    
+
     readr::write_csv(
       x = count_data,
       file = "test_count_data.csv"
