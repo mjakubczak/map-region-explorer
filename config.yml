@@ -3,7 +3,7 @@ default:
   rhino_log_file: !expr Sys.getenv("RHINO_LOG_FILE", NA)
 
   app_name: "Map Region Explorer"
-  version: "0.1.0"
+  version: "0.1.1"
   
   data:
     config_file: !expr Sys.getenv("DATA_CONFIG_FILE", "config_data.yml")
